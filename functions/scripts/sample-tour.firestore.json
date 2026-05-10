@@ -1,0 +1,64 @@
+{
+  "tourId": "demo-santiago-centro",
+  "tour": {
+    "active": true,
+    "tier": 0,
+    "separatedSteps": false,
+    "categories": ["museums"],
+    "createdBy": "",
+    "likeUsers": {},
+    "title": {
+      "en": "Demo tour — Santiago center",
+      "es": "Tour demo — Centro de Santiago"
+    },
+    "description": {
+      "en": "Sample walking tour to learn Firestore shape (tours + steps).",
+      "es": "Tour de ejemplo para entender la forma de los datos en Firestore."
+    },
+    "location": {
+      "latitude": -33.4372,
+      "longitude": -70.6506
+    },
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Plaza_de_Armas_de_Santiago_2022.jpg/640px-Plaza_de_Armas_de_Santiago_2022.jpg",
+    "languages": [
+      { "code": "en", "name": "English" },
+      { "code": "es", "name": "Spanish" }
+    ]
+  },
+  "steps": [
+    {
+      "id": "stop-plaza-armas",
+      "position": 0,
+      "title": {
+        "en": "Plaza de Armas",
+        "es": "Plaza de Armas"
+      },
+      "location": {
+        "latitude": -33.4377,
+        "longitude": -70.6509
+      },
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Plaza_de_Armas_de_Santiago_2022.jpg/320px-Plaza_de_Armas_de_Santiago_2022.jpg",
+      "audio": {
+        "en": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "es": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+      }
+    },
+    {
+      "id": "stop-catedral",
+      "position": 1,
+      "title": {
+        "en": "Metropolitan Cathedral",
+        "es": "Catedral Metropolitana"
+      },
+      "location": {
+        "latitude": -33.4379,
+        "longitude": -70.6517
+      },
+      "image": "",
+      "audio": {
+        "en": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        "es": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+      }
+    }
+  ]
+}

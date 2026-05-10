@@ -2,7 +2,20 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const geofire = require("geofire-common");
-const config = require("../config.json");
+
+// Carga functions/.env solo en desarrollo local (el ZIP de deploy no suele incluir .env).
+require("dotenv").config();
+
+function getGoogleMapsApiKey() {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  if (!key || String(key).trim() === "") {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "GOOGLE_MAPS_API_KEY no está configurada. En producción: variables de entorno o Secret Manager en la función. En local: copia .env.example a .env en backend/functions."
+    );
+  }
+  return String(key).trim();
+}
 
 const types = [
   "restaurant",
@@ -40,6 +53,7 @@ const types = [
 ];
 
 const loadPlaces = functions.https.onCall(async (data, context) => {
+  const apiKey = getGoogleMapsApiKey();
   let gdata = [];
   const db = admin.firestore();
   const batch = db.batch();
@@ -52,7 +66,7 @@ const loadPlaces = functions.https.onCall(async (data, context) => {
         data.location.latitude
       },${data.location.longitude}&radius=${1000}&type=${
         types_recommendations[i]
-      }&key=${config.GOOGLE_CREDENTIALS}`;
+      }&key=${apiKey}`;
 
       let page = await axios.get(url);
       if (page.data.error_message) {
@@ -88,6 +102,9 @@ const loadPlaces = functions.https.onCall(async (data, context) => {
 
     await batch.commit();
   } catch (e) {
+    if (e instanceof functions.https.HttpsError) {
+      throw e;
+    }
     console.log(e);
   }
 

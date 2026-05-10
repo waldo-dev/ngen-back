@@ -1,0 +1,101 @@
+================================================================================
+OPCIÓN RÁPIDA (recomendada): un comando desde la PC, escribe en tu Firestore real
+================================================================================
+1) Instala Firebase CLI si no la tienes: https://firebase.google.com/docs/cli
+2) En PowerShell (ajusta la ruta a tu clon):
+   cd ...\ngenflutter\backend\functions
+   firebase login
+   firebase use
+      → el proyecto debe ser el mismo que la app: project_id "ngen-495404"
+        (ver app\android\app\google-services.json). Coincide con backend\.firebaserc "default".
+      Si usas otro proyecto: firebase use <id> y exporta GCLOUD_PROJECT=<id>
+      antes del seed, o actualiza .firebaserc y los google-services de la app.
+   (No definas FIRESTORE_EMULATOR_HOST)
+   node scripts/seed-tours.js
+      ó: npm run seed:tours
+3) Listo: datos en tours/cl/list/demo-santiago-centro y steps/...
+
+Si sale "Could not load the default credentials":
+   "firebase login" NO basta para este script. Elige una opción:
+
+   A) Google Cloud SDK instalado, luego en PowerShell:
+        gcloud auth application-default login
+
+   B) Cuenta de servicio: Firebase Console → ngen-495404 → engranaje (Configuración)
+      → Cuentas de servicio → Generar nueva clave privada (JSON).
+      Guarda el archivo y ejecuta:
+        node scripts/seed-tours.js --credentials "C:\ruta\completa\clave.json"
+
+================================================================================
+OPCIÓN SOLO CONSOLA WEB (Firebase > Firestore > Datos)
+================================================================================
+
+--- Imágenes y audios: de dónde salen las URLs ---
+La app NO incluye un flujo para que el usuario final suba narraciones del tour. Quien
+crea el contenido (vos, un admin o un panel interno) prepara los archivos y deja en
+Firestore enlaces HTTPS a cada MP3 (por idioma en el mapa "audio").
+
+Para pruebas, sample-tour.firestore.json usa URLs públicas de ejemplo (música genérica).
+En producción sueles:
+  • Subir los MP3 a Firebase Storage (Consola → Storage → subir archivo → copiar URL
+    de descarga; ajusta reglas de Storage para lectura pública o firmada según tu modelo).
+  • O usar otro hosting/CDN con URL estable.
+
+Cada clave del mapa "audio" debe coincidir con el código de idioma que usa la app
+(en, es, cmn si usas chino, etc.). La descarga offline hace HTTP GET a esa URL.
+
+Crea exactamente estas rutas. Tipos: string, number, boolean, map, array, map dentro de array.
+
+--- Ruta 1: tour ---
+Colección: tours
+  Documento ID: cl
+    Subcolección: list
+      Documento ID: demo-santiago-centro
+
+Campos del documento demo-santiago-centro:
+  active          boolean     true
+  tier            number      0
+  separatedSteps  boolean     false
+  categories      array       ["museums"]   (elementos tipo string)
+  createdBy       string      (vacío)
+  likeUsers       map         (vacío: sin subcampos, o deja el mapa vacío)
+  title           map         en → string "Demo tour — Santiago center"
+                              es → string "Tour demo — Centro de Santiago"
+  description     map         en → string "Sample walking tour to learn Firestore shape (tours + steps)."
+                              es → string "Tour de ejemplo para entender la forma de los datos en Firestore."
+  location        map         latitude → number -33.4372
+                              longitude → number -70.6506
+  image           string      https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Plaza_de_Armas_de_Santiago_2022.jpg/640px-Plaza_de_Armas_de_Santiago_2022.jpg
+  languages       array       (opcional; 2 elementos tipo map)
+    [0] map: code "en", name "English"
+    [1] map: code "es", name "Spanish"
+
+--- Ruta 2: paso 1 ---
+Colección: steps
+  Documento ID: demo-santiago-centro
+    Subcolección: list
+      Documento ID: stop-plaza-armas
+
+Campos:
+  position   number  0
+  title      map     en "Plaza de Armas", es "Plaza de Armas"
+  location   map     latitude -33.4377, longitude -70.6509
+  image      string  https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Plaza_de_Armas_de_Santiago_2022.jpg/320px-Plaza_de_Armas_de_Santiago_2022.jpg
+  audio      map     en → URL HTTPS a un .mp3, es → idem (ver bloque "Imágenes y audios" arriba)
+
+--- Ruta 3: paso 2 ---
+Misma colección steps > demo-santiago-centro > list
+  Documento ID: stop-catedral
+
+Campos:
+  position   number  1
+  title      map     en "Metropolitan Cathedral", es "Catedral Metropolitana"
+  location   map     latitude -33.4379, longitude -70.6517
+  image      string  (vacío)
+  audio      map     en y es → URLs a tus MP3 (o las de ejemplo en sample-tour.firestore.json)
+
+================================================================================
+Nota
+================================================================================
+Si el documento "cl" no existe, créalo primero (puede ser un doc sin campos extra;
+luego añade la subcolección "list").

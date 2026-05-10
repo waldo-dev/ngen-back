@@ -2,12 +2,29 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const paypal = require("paypal-rest-sdk");
 const payments = paypal.v1.payments;
-const config = require("../config.json");
-const env = new paypal.core.SandboxEnvironment(
-  config.PAYPAL_CLIENT_ID,
-  config.PAYPAL_CLIENT_SECRET
-);
-const paypalClient = new paypal.core.PayPalHttpClient(env);
+
+require("dotenv").config();
+
+let paypalClientSingleton;
+function getPayPalClient() {
+  if (paypalClientSingleton) {
+    return paypalClientSingleton;
+  }
+  const id = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_CLIENT_SECRET;
+  if (!id || !secret || String(id).trim() === "" || String(secret).trim() === "") {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET deben estar definidas (env en Cloud Functions o .env en local)."
+    );
+  }
+  const paypalEnv = new paypal.core.SandboxEnvironment(
+    String(id).trim(),
+    String(secret).trim()
+  );
+  paypalClientSingleton = new paypal.core.PayPalHttpClient(paypalEnv);
+  return paypalClientSingleton;
+}
 
 const WebpayPlus = require("transbank-sdk").WebpayPlus;
 const Environment = require("transbank-sdk").Environment;
@@ -35,7 +52,7 @@ exports.activatePayment = functions.https.onCall(async (data, context) => {
 
   let paymentId = data.paymentId;
   let request = new payments.PaymentGetRequest(paymentId);
-  let resp = await paypalClient.execute(request);
+  let resp = await getPayPalClient().execute(request);
   let payment = resp.result;
 
   return processSubscriptionPaypal(data, payment, paymentId, user);

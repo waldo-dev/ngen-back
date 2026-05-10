@@ -1,6 +1,21 @@
 {
   "functions": {
-    "source": "functions"
+    "source": "functions",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "firestore-debug.log",
+      "firebase-export-*",
+      "emulator",
+      "emulator/**",
+      ".runtimeconfig.json",
+      "config.json",
+      ".env",
+      ".env.local",
+      "*.log"
+    ]
   },
   "firestore": {
     "database": "(default)",
